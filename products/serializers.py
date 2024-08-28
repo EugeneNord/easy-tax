@@ -9,13 +9,15 @@ class ProductCategorySerializer(serializers.ModelSerializer):
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
+    photo = serializers.ImageField()
+
     class Meta:
         model = ProductImage
         fields = ('id', 'photo', 'product')
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    images = ProductImageSerializer(many=True, read_only=True)
+    images = ProductImageSerializer(many=True)
 
     class Meta:
         model = Product
