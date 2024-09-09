@@ -80,34 +80,12 @@ def test_full_update_me_success(
         ('first_name', ' фдадфаол'),
         ('last_name', ' плаыдфаф '),
         ('patronymic', ' плаыдфаф '),
+        ('first_name', 'фдадфаолллллллллллллллллллллллл'),
+        ('last_name', 'плаыдфафвввввввввввввввввввввввв'),
+        ('patronymic', 'плаыдфафйййййййййййййййййййййййо'),
     ]
 )
-def test_params_contain_space(
-    factory,
-    user_me_url,
-    user_me_view,
-    active_user,
-    full_update_body,
-    param,
-    value
-):
-    full_update_body[param] = value
-    request = factory.patch(user_me_url, full_update_body)
-    force_authenticate(request, user=active_user)
-    response = user_me_view(request)
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    'param,value',
-    [
-        ('first_name', 'фдадфаоллллллллллллллллллллллллллллллллллллллллллллллллллллллл'),
-        ('last_name', 'плаыдфафввввввввввввввввввввввввввввввввввввввввввввв'),
-        ('patronymic', 'плаыдфафййййййййййййййййййййййййййййййййййййййййййй'),
-    ]
-)
-def test_fio_max_len(
+def test_invalid_fio(
     factory,
     user_me_url,
     user_me_view,
@@ -168,6 +146,87 @@ def test_unp_patch(
     status
 ):
     request = factory.patch(user_me_url, {'unp': value})
+    force_authenticate(request, user=active_user)
+    response = user_me_view(request)
+    assert response.status_code == status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'value,status',
+    [
+        ('MP2931048', status.HTTP_200_OK),
+        ('', status.HTTP_400_BAD_REQUEST),
+        ('M29401840', status.HTTP_400_BAD_REQUEST),
+        ('MP2913', status.HTTP_400_BAD_REQUEST),
+        ('310092999', status.HTTP_400_BAD_REQUEST),
+        ('MP981841981', status.HTTP_400_BAD_REQUEST),
+        ('MP8329K23', status.HTTP_400_BAD_REQUEST),
+    ]
+)
+def test_passport_num_patch(
+    factory,
+    user_me_url,
+    active_user,
+    user_me_view,
+    value,
+    status
+):
+    request = factory.patch(user_me_url, {'passport_num': value})
+    force_authenticate(request, user=active_user)
+    response = user_me_view(request)
+    assert response.status_code == status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'value,status',
+    [
+        ('+375447777777', status.HTTP_200_OK),
+        ('', status.HTTP_400_BAD_REQUEST),
+        ('      ', status.HTTP_400_BAD_REQUEST),
+        ('375449999999', status.HTTP_400_BAD_REQUEST),
+        ('+3753291', status.HTTP_400_BAD_REQUEST),
+        ('+375j91092222', status.HTTP_400_BAD_REQUEST),
+        ('+37593919199310', status.HTTP_400_BAD_REQUEST),
+    ]
+)
+def test_phone_num_patch(
+    factory,
+    user_me_url,
+    active_user,
+    user_me_view,
+    value,
+    status
+):
+    request = factory.patch(user_me_url, {'phone_number': value})
+    force_authenticate(request, user=active_user)
+    response = user_me_view(request)
+    assert response.status_code == status
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'value,status',
+    [
+        ('ул. Колотушкина, д.2222, кв. 21', status.HTTP_200_OK),
+        ('', status.HTTP_400_BAD_REQUEST),
+        ('        ', status.HTTP_400_BAD_REQUEST),
+        ('ул. Kalfjanfal, д.2222, кв. 21', status.HTTP_400_BAD_REQUEST),
+    ]
+)
+def test_addresses_patch(
+    factory,
+    user_me_url,
+    active_user,
+    user_me_view,
+    value,
+    status
+):
+    request = factory.patch(
+        user_me_url,
+        {'residential_address': value, 'registration_address': value}
+    )
     force_authenticate(request, user=active_user)
     response = user_me_view(request)
     assert response.status_code == status
